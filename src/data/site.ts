@@ -159,7 +159,7 @@ const brandPresets: Record<BrandPresetKey, BrandConfig> = {
 
 const brandPreset: BrandPresetKey = 'primary'
 
-export const siteConfig: SiteConfig = {
+const templateSiteConfig: SiteConfig = {
   name: 'Documentation',
   description:
     'Clear, task-focused guidance for building with the product.',
@@ -172,3 +172,17 @@ export const siteConfig: SiteConfig = {
   brandPreset,
   brandPresets,
 }
+
+// Managed by Thally Cloud onboarding.
+export const siteConfig: SiteConfig = {
+  ...templateSiteConfig,
+  name: "Mood Music Docs",
+  description: "Documentation for Mood Music - Type a mood or a description of your day, and get back real Spotify playlists that match. Log in with Spotify to keep a history of your past searches.",
+  repoUrl: "https://github.com/chikeozulumba/mood-music-docs",
+  links: [
+    { label: "Get started", href: "/quickstart" },
+    { label: "Support", href: "https://github.com/chikeozulumba/mood-music-docs/issues/new" },
+    { label: "GitHub", href: "https://github.com/chikeozulumba/mood-music-docs" },
+    { label: "Changelog", href: "/changelog" },
+  ],
+};

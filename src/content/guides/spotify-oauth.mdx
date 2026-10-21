@@ -1,0 +1,93 @@
+---
+title: "Spotify login: setup and troubleshooting"
+description: Add Spotify login for persistent search history, and fix the most common redirect URI errors.
+---
+
+Mood search works for everyone, logged in or not. Logging in with Spotify adds two things: a saved history of your past mood searches (at `/history`), and a per-user weekly search quota instead of a per-IP one. This guide covers adding login for a new environment, and the errors you'll hit if a step is missed.
+
+## How the redirect URI is chosen
+
+Spotify requires every redirect URI an app can send users back to be registered in advance, in the Spotify Developer Dashboard. Mood Music doesn't hardcode a single one — `apps/api/src/lib/redirect-uri.ts` picks the redirect URI per-request from the incoming `Referer` header, but only when that header's origin is on an allowlist in the code. Any other origin, or a missing `Referer`, falls back to the static `SPOTIFY_REDIRECT_URI` environment variable.
+
+This means adding a new domain the app is served from is a **two-place change**, not one:
+
+1. Register the new domain's exact callback URL in the Spotify dashboard.
+2. Add that domain's origin to the allowlist in `redirect-uri.ts`.
+
+Missing either one is the single most common way Spotify login breaks after a deploy.
+
+## Adding a new domain
+
+1. Point the domain at your Worker (Cloudflare custom domain or route — this repo doesn't configure that for you).
+2. In the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), add `https://your-domain/api/auth/callback` to the app's Redirect URIs.
+3. In `apps/api/src/lib/redirect-uri.ts`, add the same origin to the allowlist.
+4. Set the three secrets on Cloudflare, not just locally:
+
+   ```zsh
+   cd apps/api
+   wrangler secret put ANTHROPIC_API_KEY
+   wrangler secret put SPOTIFY_CLIENT_ID
+   wrangler secret put SPOTIFY_CLIENT_SECRET
+   ```
+
+5. Update `SPOTIFY_REDIRECT_URI` in `apps/api/wrangler.toml`'s `[vars]` block to the new domain, as the fallback for any request without a matching `Referer`.
+6. Redeploy (`pnpm deploy`).
+
+## Examples
+
+### Example: a login round trip
+
+1. The user clicks "Log in with Spotify." The browser is sent to Spotify's authorize endpoint, with the redirect URI the server picked for the current origin:
+
+   ```zsh
+   https://accounts.spotify.com/authorize
+     ?client_id=<your_client_id>
+     &response_type=code
+     &redirect_uri=https%3A%2F%2Fmoodmusic.chikeozulumba.com%2Fapi%2Fauth%2Fcallback
+     &scope=user-read-email%20user-read-private
+   ```
+
+2. Spotify redirects back with a one-time code:
+
+   ```zsh
+   GET /api/auth/callback?code=AQD...
+   ```
+
+3. The API exchanges that code for tokens, stores them in the user's `UserState` Durable Object, and sets a session cookie.
+4. The browser lands back on `/`, now showing the logged-in state. Confirming it worked is one request:
+
+   ```zsh
+   curl -b "session=..." https://moodmusic.chikeozulumba.com/api/auth/me
+   # { "id": "31xyz...", "display_name": "Chike", "loggedIn": true }
+   ```
+
+### Example: adding a staging domain
+
+Say you're adding `staging.moodmusic.chikeozulumba.com` ahead of a production rollout. All three changes from "Adding a new domain" above, applied to this one domain:
+
+1. **Spotify dashboard** — add `https://staging.moodmusic.chikeozulumba.com/api/auth/callback` as a Redirect URI.
+2. **Code allowlist** — in `apps/api/src/lib/redirect-uri.ts`:
+
+   ```diff
+     const ALLOWED_ORIGINS = [
+       "https://moodmusic.chikeozulumba.com",
+   +   "https://staging.moodmusic.chikeozulumba.com",
+     ];
+   ```
+
+3. **Cloudflare routing** — point the staging subdomain at the same Worker (Settings → Domains & Routes), then redeploy.
+
+Until all three land together, logging in from the staging domain fails with the `INVALID_CLIENT` error below — which is the fastest way to tell you've only done one or two of the three.
+
+## Troubleshooting
+
+| Issue                                                         | Likely cause                                                                                                                             | Fix                                                                                                                                  |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `INVALID_CLIENT: Invalid redirect URI` on login               | The current origin's exact callback URL isn't registered in the Spotify dashboard                                                        | Copy the callback URL verbatim (scheme + host + port) from the address bar or the error, and add it exactly                          |
+| Login works locally but fails after deploying to a new domain | The domain was routed in Cloudflare but never added to the code's allowlist, the Spotify dashboard, or both                              | Add it in both places, then redeploy                                                                                                 |
+| Login succeeds, but `/history` is empty                       | The Durable Object is addressed by Spotify user ID — a mismatch here means you're reading an empty instance                              | Call `GET /api/auth/me` and confirm it returns the expected user ID; check the `UserState` Durable Object binding in `wrangler.toml` |
+| "Search limit reached" appears while testing login            | Claude calls are capped per user (or per IP, anonymously) — see [Troubleshooting: usage limits](/troubleshooting#usage-limits) | Wait out the window, or add your own Anthropic key from the profile menu                                                             |
+
+## Scope
+
+Spotify login only requests `user-read-email user-read-private` — identity only. Mood Music never reads or modifies a user's library or playlists; it only searches Spotify's public catalog.

@@ -31,7 +31,9 @@
             "introduction",
             "quickstart",
             "deploying",
-            "troubleshooting"
+            "troubleshooting",
+            "api/authentication",
+            "api/introduction"
           ]
         }
       ]
@@ -41,7 +43,9 @@
       "groups": [
         {
           "group": "Guides",
-          "pages": ["guides/spotify-oauth"]
+          "pages": [
+            "guides/spotify-oauth"
+          ]
         }
       ]
     }

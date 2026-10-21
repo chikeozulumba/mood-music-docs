@@ -19,12 +19,12 @@ Start here if something isn't working and you're not sure which guide covers it.
 
 ## Usage limits
 
-- **Hitting the limit fast while logged out** — the anonymous quota is tracked per IP, and shared Wi-Fi or a VPN means shared IPs. See [Usage limits and bringing your own Anthropic key](/guides/usage-limits).
-- **Limit reached after only a few searches** — slightly different mood text misses the cache and calls Claude fresh each time. See [Usage limits and bringing your own Anthropic key](/guides/usage-limits).
-- **Added your own key, but still seems capped** — re-open the profile menu and confirm the key actually saved. See [Usage limits and bringing your own Anthropic key](/guides/usage-limits).
+- **Hitting the limit fast while logged out** — the anonymous quota is tracked per IP, and shared Wi-Fi or a VPN means shared IPs.
+- **Limit reached after only a few searches** — slightly different mood text misses the cache and calls Claude fresh each time.
+- **Added your own key, but still seems capped** — re-open the profile menu and confirm the key actually saved.
 
 ## Deploying
 
-- **Everything works locally, breaks only in production** — you likely forgot to set the three Cloudflare secrets before the first deploy. See [Deploying to Cloudflare](/guides/deploying).
-- **New domain loads the app but login fails** — the domain needs to actually be routed to the Worker (a Cloudflare custom domain or route), in addition to the code and Spotify dashboard changes covered in the login guide. See [Deploying to Cloudflare](/guides/deploying).
+- **Everything works locally, breaks only in production** — you likely forgot to set the three Cloudflare secrets before the first deploy. See [Deploying to Cloudflare](/deploying).
+- **New domain loads the app but login fails** — the domain needs to actually be routed to the Worker (a Cloudflare custom domain or route), in addition to the code and Spotify dashboard changes covered in the login guide. See [Deploying to Cloudflare](/deploying).
 - **Still stuck** — check the `wrangler deploy` output for which step failed. Most production-only failures are a missing secret, binding, or route — not a code bug.

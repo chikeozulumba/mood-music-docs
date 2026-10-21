@@ -41,8 +41,6 @@ interface HeroProps {
   primaryHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
-  titleClassName?: string;
-  className?: string;
 }
 
 /** Render the authored landing-page hero used by `mode: home`. */
@@ -53,24 +51,12 @@ export function Hero({
   primaryHref,
   secondaryLabel,
   secondaryHref,
-  titleClassName,
-  className,
 }: HeroProps) {
   const hasActions = Boolean(primaryHref || secondaryHref);
   return (
     <section className="thally-docs-hero not-prose mb-8 py-7">
-      <div
-        className={cn(
-          "flex max-w-3xl flex-col items-start text-left",
-          className,
-        )}
-      >
-        <h1
-          className={cn(
-            "max-w-[17ch] text-balance font-heading text-[2rem] font-semibold leading-9 tracking-[-0.02em] text-foreground sm:text-4xl sm:leading-10",
-            titleClassName,
-          )}
-        >
+      <div className="flex max-w-3xl flex-col items-start text-left">
+        <h1 className="max-w-[17ch] text-balance font-heading text-[2rem] font-semibold leading-9 tracking-[-0.02em] text-foreground sm:text-4xl sm:leading-10">
           {title}
         </h1>
         {subtitle ? (

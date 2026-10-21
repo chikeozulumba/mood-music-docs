@@ -1,0 +1,58 @@
+---
+title: Deploying to Cloudflare
+description: Ship Mood Music to a real Cloudflare Worker, on your own domain or the default workers.dev URL.
+---
+
+Deploying builds `apps/web` and pushes it together with the `apps/api` Worker in one step — the production SPA and API ship as a single Cloudflare Worker, the same way they run together in local dev.
+
+## Before your first deploy
+
+<Steps>
+  <Step title="Set the production secrets">
+    ```bash
+    cd apps/api
+    wrangler secret put ANTHROPIC_API_KEY
+    wrangler secret put SPOTIFY_CLIENT_ID
+    wrangler secret put SPOTIFY_CLIENT_SECRET
+    ```
+
+    `wrangler` prompts for each value and stores it encrypted against the Worker. Unlike the KV namespace IDs from the Quickstart, these never go into `wrangler.toml` or version control — and dev's `.dev.vars` file doesn't carry over, so this step is easy to forget on a first deploy.
+
+  </Step>
+  <Step title="Decide your domain">
+    - **Default `workers.dev` subdomain** — zero extra configuration; your Worker is reachable the moment you deploy.
+    - **A custom domain** (e.g. `moodmusic.yourdomain.com`) — route it to this Worker first, in Cloudflare's dashboard (Workers & Pages → your Worker → Settings → Domains & Routes → add a custom domain or route). This repo doesn't do that part for you.
+
+  </Step>
+  <Step title="Register the redirect URI for this domain">
+    Whichever domain you land on, it needs its own entry in two places before login will work there:
+
+    - The Spotify dashboard, as a registered Redirect URI:
+      - Custom domain: `https://your-domain/api/auth/callback`
+      - Default subdomain: `https://<your-worker-name>.<your-subdomain>.workers.dev/api/auth/callback`
+    - The allowlist in `apps/api/src/lib/redirect-uri.ts`
+
+    Then set `SPOTIFY_REDIRECT_URI` in `apps/api/wrangler.toml`'s `[vars]` block to whichever one is your default — it's the fallback used when a request's `Referer` doesn't match anything in the allowlist. See [Spotify login: setup and troubleshooting](/guides/spotify-oauth) for the full reasoning behind why this is a two-place change.
+
+  </Step>
+</Steps>
+
+## Deploy
+
+```bash
+pnpm deploy
+```
+
+This runs `apps/web`'s production build, then `wrangler deploy` from `apps/api`, uploading the built SPA and the Worker together.
+
+## Verify
+
+1. Open your Worker's URL (custom domain or `workers.dev`) and confirm the app loads.
+2. Type a mood and confirm you get playlists back — this exercises Claude, Spotify, and KV all at once.
+3. Log in with Spotify and confirm `/history` records the search — this exercises the redirect URI, the OAuth exchange, and the `UserState` Durable Object together.
+
+If any of these fail, see the "Deploying" section of [Troubleshooting](/guides/troubleshooting) for the most common causes.
+
+## Redeploying
+
+Future deploys are just `pnpm deploy` again — secrets and the KV namespace binding you set up once don't need repeating. You only touch secrets, redirect URIs, or routing again if you add another domain.

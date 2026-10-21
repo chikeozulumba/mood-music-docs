@@ -1,0 +1,30 @@
+---
+title: Troubleshooting
+description: A quick index to every common failure mode, organized by what you were doing when it broke.
+---
+
+Start here if something isn't working and you're not sure which guide covers it. Each entry links to the full explanation where there's more to say.
+
+## Local setup
+
+- **No playlists come back at all** — check that `ANTHROPIC_API_KEY`, `SPOTIFY_CLIENT_ID`, and `SPOTIFY_CLIENT_SECRET` are actually in `apps/api/.dev.vars`, not the repo root's `.env.local`. See [Quickstart](/quickstart#if-nothing-comes-back).
+- **KV calls fail silently** — confirm the namespace IDs from `wrangler kv namespace create` are pasted into `apps/api/wrangler.toml`, not left as placeholders. See [Quickstart](/quickstart#if-nothing-comes-back).
+- **Can't find the actual error** — check the `wrangler dev` terminal, not the browser console; Claude- and Spotify-side failures are logged there.
+
+## Spotify login
+
+- **`INVALID_CLIENT: Invalid redirect URI`** — the current origin's callback URL isn't registered in the Spotify dashboard. See [Spotify login: setup and troubleshooting](/guides/spotify-oauth).
+- **Login works locally, fails on a new domain** — the domain needs adding in two places: the code's redirect-URI allowlist and the Spotify dashboard. See [Spotify login: setup and troubleshooting](/guides/spotify-oauth).
+- **`/history` is empty after logging in** — check that `GET /api/auth/me` returns the expected user ID, and that the `UserState` Durable Object binding is set in `wrangler.toml`. See [Spotify login: setup and troubleshooting](/guides/spotify-oauth).
+
+## Usage limits
+
+- **Hitting the limit fast while logged out** — the anonymous quota is tracked per IP, and shared Wi-Fi or a VPN means shared IPs. See [Usage limits and bringing your own Anthropic key](/guides/usage-limits).
+- **Limit reached after only a few searches** — slightly different mood text misses the cache and calls Claude fresh each time. See [Usage limits and bringing your own Anthropic key](/guides/usage-limits).
+- **Added your own key, but still seems capped** — re-open the profile menu and confirm the key actually saved. See [Usage limits and bringing your own Anthropic key](/guides/usage-limits).
+
+## Deploying
+
+- **Everything works locally, breaks only in production** — you likely forgot to set the three Cloudflare secrets before the first deploy. See [Deploying to Cloudflare](/guides/deploying).
+- **New domain loads the app but login fails** — the domain needs to actually be routed to the Worker (a Cloudflare custom domain or route), in addition to the code and Spotify dashboard changes covered in the login guide. See [Deploying to Cloudflare](/guides/deploying).
+- **Still stuck** — check the `wrangler deploy` output for which step failed. Most production-only failures are a missing secret, binding, or route — not a code bug.

@@ -1,18 +1,19 @@
 ---
 title: Introduction
-description: Give readers a clear path from their first question to a result they can verify.
+description: What Mood Music does, how it's built, and who this documentation is for.
 mode: home
 ---
 
 <Hero
-  title="Build documentation around the reader"
-  subtitle="Start with a useful first result, organize what follows, and publish every format from one reviewable source."
+  title="Turn a mood into playlists"
+  subtitle="Describe how you feel or how your day went, and get real Spotify playlists that match."
   primaryLabel="Get started"
   primaryHref="/quickstart"
-  secondaryLabel="Publish your docs"
-  secondaryHref="/guides/create-a-site"
+  secondaryLabel="Try it live"
+  secondaryHref="https://moodmusic.chikeozulumba.com"
+  titleClassName="max-w-[25ch]"
 />
-
+{/* 
 ## Build the reader journey
 
 Begin with the task that brings most readers to your documentation, then make
@@ -20,16 +21,27 @@ the next useful step obvious.
 
 <CardGroup cols="2">
   <Card title="Write your quickstart" icon="party-horn" href="/quickstart">
-    Turn prerequisites, setup, one realistic task, and verification into a short path.
+    Turn prerequisites, setup, one realistic task, and verification into a short
+    path.
   </Card>
-  <Card title="Organize your navigation" icon="grid-round" href="/customization">
+  <Card
+    title="Organize your navigation"
+    icon="grid-round"
+    href="/customization"
+  >
     Group related tasks and references around how people use your product.
   </Card>
   <Card title="Document your API" icon="code-simple" href="/api">
-    Replace `openapi.yaml` to publish browsable endpoint docs with a live playground.
+    Replace `openapi.yaml` to publish browsable endpoint docs with a live
+    playground.
   </Card>
-  <Card title="Learn the Thally workflow" icon="wrench" href="/guides/create-a-site">
-    Create, publish, and update sites from the Cloud dashboard, the CLI, or your AI tools.
+  <Card
+    title="Learn the Thally workflow"
+    icon="wrench"
+    href="/guides/create-a-site"
+  >
+    Create, publish, and update sites from the Cloud dashboard, the CLI, or your
+    AI tools.
   </Card>
 </CardGroup>
 
@@ -42,4 +54,46 @@ same, current answer. Add only the locales your readers need.
 <Note type="info" title="Start with the product, not the template">
   Replace this page with the questions, terminology, and workflows your readers
   already use. Keep `docs.json` focused on the path between those tasks.
-</Note>
+</Note> */}
+
+# Introduction
+
+Mood Music turns a one-line description of your mood or your day into real Spotify playlists. Type something like "rainy Lagos afternoon, need focus" and get back a ranked list of matching playlists, pulled straight from Spotify's own catalog. Try it live at [moodmusic.chikeozulumba.com](https://moodmusic.chikeozulumba.com).
+
+Logging in with Spotify adds one thing on top of the core mood search: a saved history of your past searches, with the vibe Claude read into each one and the playlists that came back.
+
+## Who this is for
+
+This documentation is for developers who want to:
+
+- Run their own copy of Mood Music, locally or deployed
+- Understand how a small LLM-driven search feature can sit in front of a third-party API without needing a traditional database
+- See a working example of Cloudflare Workers, KV, and Durable Objects used together in a single small project
+
+If you just want to use the app, you don't need any of this — go to the live site and type a mood.
+
+## How it's built
+
+Mood Music is a pnpm monorepo with two apps that deploy as a single Cloudflare Worker:
+
+- `apps/web` — a Vite + React + TanStack Router single-page app
+- `apps/api` — a Hono API running on Cloudflare Workers
+
+In production, the Worker serves the built SPA and runs the API from the same domain, so there's no CORS to think about and cookie-based sessions just work.
+
+## How a mood search works
+
+1. You type a mood or a description of your day.
+2. The API sends it to Claude, which returns a short "vibe" interpretation and a handful of search phrases.
+3. Each phrase searches Spotify's catalog via the Client Credentials flow — no user login required for this part — paginated and merged round-robin across phrases, so the strongest match from every phrase surfaces before any phrase's second-tier results.
+4. The combined result is cached in Workers KV, keyed by a hash of the normalized mood text, for 24 hours — so the same mood never re-hits Claude or Spotify twice.
+
+If you're logged in with Spotify, the mood text, Claude's vibe summary, and the playlists returned are also saved to your own history, stored in a Durable Object addressed by your Spotify user ID.
+
+## Where to go next
+
+- **[Quickstart](/quickstart)** — get it running locally and pull your first playlist recommendation.
+- **[Deploying to Cloudflare](/guides/deploying)** — ship it to a real Worker, on your own domain or the default workers.dev URL.
+- **[Spotify login: setup and troubleshooting](/guides/spotify-oauth)** — add login, and fix the redirect URI errors that come with deploying to a new domain.
+- **[Usage limits and bringing your own Anthropic key](/guides/usage-limits)** — understand the shared Claude quota and how to bypass it.
+- **[Troubleshooting](/guides/troubleshooting)** — an index of common failures across setup, login, and usage, each linking to the full fix.

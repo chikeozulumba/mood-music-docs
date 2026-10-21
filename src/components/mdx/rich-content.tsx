@@ -6,41 +6,36 @@
  * may continue using this module while new code should prefer the focused file.
  */
 
-import { ZoomableContent } from "@/components/mdx/zoomable-content";
-import { IntentPrefetchLink } from "@/components/navigation/intent-prefetch-link";
-import { cn } from "@/lib/utils";
-import { ArrowRight } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react'
+import { ArrowRight } from 'lucide-react'
+import { ZoomableContent } from '@/components/mdx/zoomable-content'
+import { IntentPrefetchLink } from '@/components/navigation/intent-prefetch-link'
+import { cn } from '@/lib/utils'
 
-export { Color } from "@/components/mdx/color";
-export {
-  Card,
-  CardGroup,
-  Tile,
-  TileGroup,
-} from "@/components/mdx/content-cards";
-export { Icon } from "@/components/mdx/content-icon";
-export type { IconProps } from "@/components/mdx/content-icon";
-export { Badge, Tooltip } from "@/components/mdx/content-inline";
-export { Update } from "@/components/mdx/content-metadata";
+export { Card, CardGroup, Tile, TileGroup } from '@/components/mdx/content-cards'
+export { Icon } from '@/components/mdx/content-icon'
+export type { IconProps } from '@/components/mdx/content-icon'
+export { Badge, Tooltip } from '@/components/mdx/content-inline'
+export { Color } from '@/components/mdx/color'
+export { Update } from '@/components/mdx/content-metadata'
 export {
   InlineRequestExample as RequestExample,
   InlineResponseExample as ResponseExample,
-} from "@/components/mdx/examples";
-export { ContentPanel as Panel } from "@/components/mdx/panel";
+} from '@/components/mdx/examples'
+export { ContentPanel as Panel } from '@/components/mdx/panel'
 export {
   Terminal as Prompt,
-  TerminalOutput as PromptAssistant,
   TerminalInput as PromptUser,
-} from "@/components/mdx/prompt";
+  TerminalOutput as PromptAssistant,
+} from '@/components/mdx/prompt'
 
 interface HeroProps {
-  title: string;
-  subtitle?: string;
-  primaryLabel?: string;
-  primaryHref?: string;
-  secondaryLabel?: string;
-  secondaryHref?: string;
+  title: string
+  subtitle?: string
+  primaryLabel?: string
+  primaryHref?: string
+  secondaryLabel?: string
+  secondaryHref?: string
 }
 
 /** Render the authored landing-page hero used by `mode: home`. */
@@ -52,7 +47,7 @@ export function Hero({
   secondaryLabel,
   secondaryHref,
 }: HeroProps) {
-  const hasActions = Boolean(primaryHref || secondaryHref);
+  const hasActions = Boolean(primaryHref || secondaryHref)
   return (
     <section className="thally-docs-hero not-prose mb-8 py-7">
       <div className="flex max-w-3xl flex-col items-start text-left">
@@ -71,7 +66,7 @@ export function Hero({
                 href={primaryHref}
                 className="inline-flex items-center gap-2 rounded-[9px] bg-primary px-4 py-2 text-[0.84rem] font-semibold text-primary-foreground transition hover:brightness-125 active:scale-[0.98]"
               >
-                {primaryLabel ?? "Get started"}
+                {primaryLabel ?? 'Get started'}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </IntentPrefetchLink>
             ) : null}
@@ -80,70 +75,51 @@ export function Hero({
                 href={secondaryHref}
                 className="inline-flex items-center gap-2 rounded-[9px] border border-border bg-background px-4 py-2 text-[0.84rem] font-semibold text-foreground transition hover:border-accent hover:text-foreground active:scale-[0.98]"
               >
-                {secondaryLabel ?? "Learn more"}
+                {secondaryLabel ?? 'Learn more'}
               </IntentPrefetchLink>
             ) : null}
           </div>
         ) : null}
       </div>
     </section>
-  );
+  )
 }
 
 interface ColumnsProps {
-  cols?: number | string;
-  children: ReactNode;
+  cols?: number | string
+  children: ReactNode
 }
 
 const columnClassnames: Record<number, string> = {
-  1: "grid-cols-1",
-  2: "sm:grid-cols-2",
-  3: "sm:grid-cols-2 lg:grid-cols-3",
-  4: "sm:grid-cols-2 lg:grid-cols-4",
-};
+  1: 'grid-cols-1',
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+}
 
 /** Lay out arbitrary MDX children in one to four responsive columns. */
 export function Columns({ cols = 2, children }: ColumnsProps) {
-  const count = typeof cols === "string" ? Number.parseInt(cols, 10) : cols;
-  return (
-    <div
-      className={cn(
-        "grid grid-cols-1 gap-3",
-        columnClassnames[count] ?? columnClassnames[2],
-      )}
-    >
-      {children}
-    </div>
-  );
+  const count = typeof cols === 'string' ? Number.parseInt(cols, 10) : cols
+  return <div className={cn('grid grid-cols-1 gap-3', columnClassnames[count] ?? columnClassnames[2])}>{children}</div>
 }
 
 /** A single cell inside {@link Columns}; the grid parent handles layout. */
 export function Column({ children }: { children: ReactNode }) {
-  return <div>{children}</div>;
+  return <div>{children}</div>
 }
 
 interface FrameProps {
-  caption?: string;
-  zoom?: boolean;
-  children: ReactNode;
+  caption?: string
+  zoom?: boolean
+  children: ReactNode
 }
 
 /** Present media in a captioned, optionally zoomable documentation frame. */
 export function Frame({ caption, zoom = true, children }: FrameProps) {
   return (
     <figure className="my-6 overflow-hidden rounded-[11px] border border-border bg-muted/40">
-      {zoom ? (
-        <ZoomableContent>
-          <div className="p-5">{children}</div>
-        </ZoomableContent>
-      ) : (
-        <div className="p-5">{children}</div>
-      )}
-      {caption ? (
-        <figcaption className="border-t border-border px-5 py-3 text-[0.8rem] leading-[1.55] text-foreground/60">
-          {caption}
-        </figcaption>
-      ) : null}
+      {zoom ? <ZoomableContent><div className="p-5">{children}</div></ZoomableContent> : <div className="p-5">{children}</div>}
+      {caption ? <figcaption className="border-t border-border px-5 py-3 text-[0.8rem] leading-[1.55] text-foreground/60">{caption}</figcaption> : null}
     </figure>
-  );
+  )
 }
